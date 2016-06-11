@@ -75,7 +75,7 @@ class GCategories
 		$ret[0]['breadcrumb'] = self::getPath((int)$id_gcategory, '', $cookie->id_lang, $id_shop, $root->id_category);
 		if(empty($ret[0]['breadcrumb']) || $ret[0]['breadcrumb']==' > ')$ret[0]['breadcrumb']=$ret[0]['gcat_name'];
 
-		return array('breadcrumb' => $ret[0]['breadcrumb'], 'gcategory' => $gcateg, 'export' => $ret[0]['export'], 'condition' => $ret[0]['condition'], 'availability' => $ret[0]['availability'], 'gender' => $ret[0]['gender'], 'age_group' => $ret[0]['age_group'], 'color' => $ret[0]['color'], 'material' => $ret[0]['material'], 'pattern' => $ret[0]['pattern'], 'size' => $ret[0]['size']);
+		return array('breadcrumb' => $ret[0]['breadcrumb'], 'gcategory' => $gcateg, 'export' => $ret[0]['export'], 'condition' => $ret[0]['condition'], 'availability' => $ret[0]['availability'], 'gender' => $ret[0]['gender'], 'age_group' => $ret[0]['age_group'], 'color' => $ret[0]['color'], 'material' => $ret[0]['material'], 'pattern' => $ret[0]['pattern'], 'size' => $ret[0]['size'], 'link_from_cat' => $ret[0]['link_from_cat']);
 		
 	}
 
@@ -116,7 +116,7 @@ class GCategories
 		);
 	}
 
-	public static function update($id_category, $gcateg, $export, $condition, $availability, $gender, $age_group, $color, $material, $pattern, $size, $id_shop)
+	public static function update($id_category, $gcateg, $export, $condition, $availability, $gender, $age_group, $color, $material, $pattern, $size, $id_shop,$link_from_cat)
 	{
 		if(empty($id_category))
 			return false;
@@ -135,6 +135,7 @@ class GCategories
 				'material' => $material,
 				'pattern' => $pattern,
 				'size' => $size,
+				'link_from_cat' => $link_from_cat	
 			),
 			'id_gcategory = '.(int)$id_category.' AND id_shop='.(int)$id_shop
 		);

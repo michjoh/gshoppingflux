@@ -119,6 +119,7 @@ class GShoppingFlux extends Module
 			`pattern` VARCHAR( 64 ) NOT NULL,
 			`size` VARCHAR( 64 ) NOT NULL,
 			`id_shop` INT(11) UNSIGNED NOT NULL,
+			`link_from_cat` INT(1) UNSIGNED NOT NULL DEFAULT 0,
 			INDEX (`id_shop`)
 		) ENGINE = '._MYSQL_ENGINE_.' CHARACTER SET utf8 COLLATE utf8_general_ci;') &&
 			Db::getInstance()->execute('
@@ -367,6 +368,7 @@ class GShoppingFlux extends Module
 			$pattern = implode(";", Tools::getValue('pattern'));
 			$size = implode(";", Tools::getValue('size'));
 			$id_shop = (int)Shop::getContextShopID();
+			$link_from_cat = (int)Tools::getValue('link_from_cat_active_on', 0);
 			 
 			if (Tools::isSubmit('updatecateg'))
 			{
@@ -377,7 +379,7 @@ class GShoppingFlux extends Module
 					$gcateg[$lang['id_lang']] = Tools::getValue('gcategory_'.(int)$lang['id_lang']);
 				}
 
-				GCategories::update($id_gcategory, $gcateg, $export, $condition, $availability, $gender, $age_group, $color, $material, $pattern, $size, $id_shop);
+				GCategories::update($id_gcategory, $gcateg, $export, $condition, $availability, $gender, $age_group, $color, $material, $pattern, $size, $id_shop,$link_from_cat);
 				$this->_html .= $this->displayConfirmation($this->l('Google category has been updated.'));
 			}
 		}
@@ -958,6 +960,21 @@ class GShoppingFlux extends Module
 						)
                     ),
 					array(
+							'type' => 'checkbox',
+							'name' => 'link_from_cat',
+							'values' => array(
+									'query' => array(
+											array(
+													'id' => 'active_on',
+													'name' => $this->l('For each product link, use category link'),
+													'val' => '1'
+											),
+									),
+									'id' => 'id',
+									'name' => 'name'
+							)
+					),
+					array(
 						'type' => 'select',
 						'label' => $this->l('Condition'),
 						'name' => 'condition',
@@ -1082,6 +1099,7 @@ class GShoppingFlux extends Module
 	public function getGCategFieldsValues()
 	{
 		$gcatexport_active = '';
+		$gcatlink_from_cat_active = '';
 		$gcatcondition_edit = '';
 		$gcatavail_edit = '';
 		$gcatgender_edit = '';
@@ -1101,6 +1119,7 @@ class GShoppingFlux extends Module
 				$gcateg['gcategory'][$key] = Tools::htmlentitiesDecodeUTF8($categ);
 
 			$gcatexport_active = $gcateg['export'];
+			$gcatlink_from_cat_active = $gcateg['link_from_cat'];
 			$gcatcondition_edit = $gcateg['condition'];
 			$gcatavail_edit = $gcateg['availability'];
 			$gcatgender_edit = $gcateg['gender'];
@@ -1118,6 +1137,7 @@ class GShoppingFlux extends Module
 			'id_gcategory' => Tools::getValue('id_gcategory'),
 			'breadcrumb' => (isset($gcatlabel_edit) ? $gcatlabel_edit : ''),
 			'export_active_on' => Tools::getValue('export_active_on', isset($gcatexport_active) ? $gcatexport_active : ''),
+			'link_from_cat_active_on' => Tools::getValue('link_from_cat_active_on', isset($gcatlink_from_cat_active) ? $gcatlink_from_cat_active : ''),
 			'condition' => Tools::getValue('condition', isset($gcatcondition_edit) ? $gcatcondition_edit : ''),
 			'availability' => Tools::getValue('availability', isset($gcatavail_edit) ? $gcatavail_edit : ''),
 			'gender' => Tools::getValue('gender', isset($gcatgender_edit) ? $gcatgender_edit : ''),
@@ -1203,7 +1223,13 @@ class GShoppingFlux extends Module
 					'align' => 'center',
 					'is_bool' => true,
 					'active' => 'status'
-				)			
+				),		
+				'link_from_cat' => array(
+						'title' => $this->l('Link from Cat'),
+						'align' => 'center',
+						'is_bool' => true,
+						'active' => 'status'
+				)
 			)				
 		);
 
@@ -1738,8 +1764,11 @@ class GShoppingFlux extends Module
 						
 		$cat_link_rew = Category::getLinkRewrite($product['id_gcategory'], intval($lang));
 		
-		$product_link = $this->context->link->getProductLink((int) ($product['id_product']), $product['link_rewrite'], $cat_link_rew, $product['ean13'], (int) ($product['id_lang']), $id_shop, $combination, true);
-            
+		if($product['link_from_cat']==0){
+			$product_link = $this->context->link->getProductLink((int) ($product['id_product']), $product['link_rewrite'], $cat_link_rew, $product['ean13'], (int) ($product['id_lang']), $id_shop, $combination, true);
+		}else{//if link_from_cat set 
+			$product_link = $this->context->link->getCategoryLink($product['category_default']);
+        }
         // Product name
 		$title_crop = ucfirst(mb_strtolower($product['name'], self::CHARSET));
 		// Michael Hjulskov
